@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
+    private int nextId = 1;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
@@ -22,31 +25,35 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) throws ValidationException {
-        if (!validate(film)) {
-            log.debug("Не пройдена валиданция данных о фильме");
-            throw new ValidationException("Ошибка добавления фильма, данные не прошли валидацию");
+    public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
+        if (film.getReleaseDate().isBefore(Film.MIN_RELEASE_DATE)) {
+            log.debug("Дата выпуска фильма не может быть раньше {}",
+                    Film.MIN_RELEASE_DATE.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+            );
+            throw new ValidationException("Данные о фильме не прошли валидацию");
         }
-        films.put(film.getId(), film);
+        film.setId(nextId);
+        films.put(nextId, film);
+        nextId++;
         log.debug("Добавлен фильм с id {}", film.getId());
         return film;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) throws ValidationException {
-        if (!validate(film)) {
-            log.debug("Не пройдена валиданция данных о фильме");
-            throw new ValidationException("Ошибка обновления фильма, данные не прошли валидацию");
+    public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
+        if (film.getReleaseDate().isBefore(Film.MIN_RELEASE_DATE)) {
+            log.debug("Дата выпуска фильма не может быть раньше {}",
+                    Film.MIN_RELEASE_DATE.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+            );
+            throw new ValidationException("Данные о фильме не прошли валидацию");
         }
-        films.put(film.getId(), film);
-        log.debug("Обновлен фильм с id {}", film.getId());
+        int id = film.getId();
+        if (!films.containsKey(id)) {
+            log.debug("Фильм с id {} не найден", id);
+            throw new ValidationException("Не удалось обновить данные о фильме");
+        }
+        films.put(id, film);
+        log.debug("Обновлен фильм с id {}", id);
         return film;
-    }
-
-    private boolean validate(Film film) {
-        return !film.getName().isBlank()
-                && film.getDescription().length() <= 200
-                && !film.getReleaseDate().isBefore(Film.MIN_RELEASE_DATE)
-                && film.getDuration() > 0;
     }
 }

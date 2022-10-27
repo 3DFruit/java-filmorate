@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
+    private int nextId = 1;
 
     @GetMapping
     public Collection<User> getUsers() {
@@ -22,32 +25,39 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@RequestBody User user) throws ValidationException {
-        if (!validate(user)) {
-            log.debug("Не пройдена валиданция данных о пользователе");
-            throw new ValidationException("Ошибка добавления пользователя, данные не прошли валидацию");
+    public User addUser(@Valid @RequestBody User user) throws ValidationException {
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.debug("Дата рождения должна быть не позднее {}",
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            throw new ValidationException("Данные о пользователе не прошли валидацию");
         }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        user.setId(nextId);
+        users.put(nextId, user);
         log.debug("Добавлен пользователь с id {}", user.getId());
-        users.put(user.getId(), user);
+        nextId++;
         return user;
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) throws ValidationException {
-        if (!validate(user)) {
-            log.debug("Не пройдена валиданция данных о пользователе");
-            throw new ValidationException("Ошибка обновления пользователя, данные не прошли валидацию");
+    public User updateUser(@Valid @RequestBody User user) throws ValidationException {
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.debug("Дата рождения должна быть не позднее {}",
+                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            throw new ValidationException("Данные о пользователе не прошли валидацию");
         }
-        log.debug("Добавлен пользователь с id {}", user.getId());
-        users.put(user.getId(), user);
+        int id = user.getId();
+        if (!users.containsKey(id)) {
+            log.debug("Пользователь с id {} не найден", id);
+            throw new ValidationException("Не удалось обновить данные о пользователе");
+        }
+        if (user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        log.debug("Обновлен пользователь с id {}", id);
+        users.put(id, user);
         return user;
-    }
-
-    private boolean validate(User user) {
-        return user.getEmail().contains("@")
-                && !user.getEmail().isBlank()
-                && !user.getLogin().isBlank()
-                && !user.getLogin().contains(" ")
-                && user.getBirthday().isBefore(LocalDate.now());
     }
 }
