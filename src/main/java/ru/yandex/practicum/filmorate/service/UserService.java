@@ -13,10 +13,12 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     UserStorage userStorage;
+    ValidationService validationService;
 
     @Autowired
-    UserService(UserStorage userStorage) {
+    UserService(UserStorage userStorage, ValidationService validationService) {
         this.userStorage = userStorage;
+        this.validationService = validationService;
     }
 
     public Collection<User> getUsers() {
@@ -28,6 +30,7 @@ public class UserService {
     }
 
     public User updateUser(User user){
+        validationService.checkUsersExistence(user.getId());
         return userStorage.updateUser(user);
     }
 
@@ -40,22 +43,25 @@ public class UserService {
     }
 
     public void addToFriends(int userId, int friendId) {
+        validationService.checkUsersExistence(userId, friendId);
         User user = userStorage.getUser(userId);
-        user.getFriends().add(friendId);
         User friend = userStorage.getUser(friendId);
+        user.getFriends().add(friendId);
         friend.getFriends().add(userId);
     }
 
     public void removeFromFriends(int userId, int friendId){
+        validationService.checkUsersExistence(userId, friendId);
         User user = userStorage.getUser(userId);
-        user.getFriends().remove(friendId);
         User friend = userStorage.getUser(friendId);
+        user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
     }
 
-    public List<User> getCommonFriends(int userId, int friendId) {
+    public List<User> getCommonFriends(int userId, int otherUserId) {
+        validationService.checkUsersExistence(userId, otherUserId);
         User user = userStorage.getUser(userId);
-        User friend = userStorage.getUser(friendId);
+        User friend = userStorage.getUser(otherUserId);
         return user.getFriends().stream()
                 .filter(friend.getFriends()::contains)
                 .map(x -> userStorage.getUser(x))

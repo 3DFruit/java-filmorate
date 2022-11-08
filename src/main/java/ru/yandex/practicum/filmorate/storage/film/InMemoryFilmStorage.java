@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 
@@ -16,9 +14,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
     @Override
     public Film addFilm(Film film) {
-        if (film.getReleaseDate().isBefore(Film.MIN_RELEASE_DATE)) {
-            throw new ValidationException("Неверная дата выпуска фильма");
-        }
         film.setId(nextId);
         films.put(nextId, film);
         nextId++;
@@ -32,14 +27,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        if (film.getReleaseDate().isBefore(Film.MIN_RELEASE_DATE)) {
-            throw new ValidationException("Неверная дата выпуска фильма");
-        }
-        int id = film.getId();
-        if (!films.containsKey(id)) {
-            throw new FilmNotFoundException("Не найден фильм с id - " + id);
-        }
-        films.put(id, film);
+        films.put(film.getId(), film);
         return film;
     }
 
