@@ -1,63 +1,47 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
-    private int nextId = 1;
+
+    UserService userService;
+
+    @Autowired
+    UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return users.values();
+        return userService.getUsers();
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.debug("Дата рождения должна быть не позднее {}",
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-            throw new ValidationException("Данные о пользователе не прошли валидацию");
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        user.setId(nextId);
-        users.put(nextId, user);
+    public User addUser(@Valid @RequestBody User user){
+        user = userService.addUser(user);
         log.debug("Добавлен пользователь с id {}", user.getId());
-        nextId++;
         return user;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.debug("Дата рождения должна быть не позднее {}",
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-            throw new ValidationException("Данные о пользователе не прошли валидацию");
-        }
-        int id = user.getId();
-        if (!users.containsKey(id)) {
-            log.debug("Пользователь с id {} не найден", id);
-            throw new ValidationException("Не удалось обновить данные о пользователе");
-        }
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        log.debug("Обновлен пользователь с id {}", id);
-        users.put(id, user);
+    public User updateUser(@Valid @RequestBody User user){
+        user = userService.updateUser(user);
+        log.debug("Обновлен пользователь с id {}", user.getId());
         return user;
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable int id) {
+        return userService.getUser(id);
     }
 }

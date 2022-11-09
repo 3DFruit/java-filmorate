@@ -6,6 +6,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -19,4 +21,5 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 1, message = "Продолжительность не может быть отрицательной")
     private long duration;
+    private final Set<Integer> likes = new HashSet<>();
 }
