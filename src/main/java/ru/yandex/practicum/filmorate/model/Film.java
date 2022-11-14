@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -9,7 +9,10 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Film {
     public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 

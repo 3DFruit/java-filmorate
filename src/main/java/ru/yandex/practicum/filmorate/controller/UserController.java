@@ -23,25 +23,27 @@ public class UserController {
 
     @GetMapping
     public Collection<User> getUsers() {
+        log.info("Запрошены все пользователи");
         return userService.getUsers();
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user){
         user = userService.addUser(user);
-        log.debug("Добавлен пользователь с id {}", user.getId());
+        log.info("Добавлен пользователь с id {}", user.getId());
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user){
         user = userService.updateUser(user);
-        log.debug("Обновлен пользователь с id {}", user.getId());
+        log.info("Обновлен пользователь с id {}", user.getId());
         return user;
     }
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable int id) {
+        log.info("Запрошен пользователь с id {}", id);
         return userService.getUser(id);
     }
 }
