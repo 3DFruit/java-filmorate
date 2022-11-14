@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 public class FilmService {
     FilmStorage filmStorage;
     UserStorage userStorage;
-    ValidationService validationService;
+    Assertions assertions;
 
     @Autowired
-    FilmService(FilmStorage filmStorage, UserStorage userStorage, ValidationService validationService) {
+    FilmService(FilmStorage filmStorage, UserStorage userStorage, Assertions assertions) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.validationService = validationService;
+        this.assertions = assertions;
     }
 
     public Collection<Film> getFilms() {
@@ -28,30 +28,28 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
-        validationService.checkFilmReleaseDate(film.getReleaseDate());
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        validationService.checkFilmReleaseDate(film.getReleaseDate());
-        validationService.checkFilmsExistence(film.getId());
+        assertions.assertFilm(film.getId());
         return filmStorage.updateFilm(film);
     }
 
     public Film getFilm(int id) {
-        validationService.checkFilmsExistence(id);
+        assertions.assertFilm(id);
         return filmStorage.getFilm(id);
     }
 
     public void addLike(int filmId, int userId) {
-        validationService.checkFilmsExistence(filmId);
-        validationService.checkUsersExistence(userId);
+        assertions.assertFilm(filmId);
+        assertions.assertUser(userId);
         filmStorage.getFilm(filmId).getLikes().add(userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        validationService.checkFilmsExistence(filmId);
-        validationService.checkUsersExistence(userId);
+        assertions.assertFilm(filmId);
+        assertions.assertUser(userId);
         filmStorage.getFilm(filmId).getLikes().remove(userId);
     }
 
