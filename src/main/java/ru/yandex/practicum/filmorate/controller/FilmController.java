@@ -24,6 +24,7 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() {
+        log.info("Запрошены все фильмы");
         return filmService.getFilms();
     }
 
@@ -43,11 +44,13 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable int id) {
+        log.info("Запрошен фильм с id {}", id);
         return filmService.getFilm(id);
     }
 
     @GetMapping("popular")
     public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") int count){
+        log.info("Запрошены {} самых популярных фильмов", count);
         return filmService.getMostPopularFilms(count);
     }
 }

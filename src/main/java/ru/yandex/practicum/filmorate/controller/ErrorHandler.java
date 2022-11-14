@@ -17,7 +17,7 @@ public class ErrorHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidateException (final Exception e) {
-        log.debug("Ошибка валидации: " + e.getMessage());
+        log.warn("Ошибка валидации: " + e.getMessage());
         return new ErrorResponse(
                 "Ошибка валидации: " + e.getMessage()
         );
@@ -26,7 +26,7 @@ public class ErrorHandler {
     @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException (final RuntimeException e) {
-        log.debug("Объект не найден: " + e.getMessage());
+        log.warn("Объект не найден: " + e.getMessage());
         return new ErrorResponse(
                 "Объект не найден: " + e.getMessage()
         );
@@ -34,10 +34,10 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowable(final Throwable e) {
-        log.debug("Необработанная ошибка: " + e.getMessage());
+    public ErrorResponse handleThrowable(final Exception e) {
+        log.warn("Необработанная ошибка: " + e);
         return new ErrorResponse(
-                "Произошла непредвиденная ошибка."
+                "Произошла непредвиденная ошибка. " + e.getMessage()
         );
     }
 }
