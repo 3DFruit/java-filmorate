@@ -18,12 +18,15 @@ public class Film {
 
     private int id;
     @NotBlank(message = "Имя не должно быть пустым")
-    private String name;
+    private String title;
     @Size(max = 200, message = "Описание не должно превышать 200 символов")
     private String description;
     @ReleaseDateConstraint
     private LocalDate releaseDate;
     @Min(value = 1, message = "Продолжительность не может быть отрицательной")
     private long duration;
+    private Mpa mpa;
+    private Set<Genre> genres;
+
     private final Set<Integer> likes = new HashSet<>();
 }
