@@ -1,33 +1,78 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.Collection;
+import java.sql.Date;
+import java.util.Objects;
 
+@Component("UserDbStorage")
 public class UserDbStorage implements UserStorage{
 
+    private final JdbcTemplate jdbcTemplate;
+
+    UserDbStorage(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
     @Override
     public User addUser(User user) {
-        return null;
+        String sql = "insert into USERS(email, login, user_name, birthday) values (?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement(sql, new String[]{"id"});
+            statement.setString(1, user.getEmail());
+            statement.setString(2, user.getLogin());
+            statement.setString(3, user.getName() != null ? user.getName() : user.getLogin());
+            statement.setDate(4, Date.valueOf(user.getBirthday()));
+            return statement;
+        }, keyHolder);
+        int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        user.setId(id);
+        return user;
     }
 
     @Override
     public void removeUserById(int id) {
-
+        String sql = "delete from USERS where user_id = ?";
+        jdbcTemplate.update(sql, id);
     }
 
     @Override
     public User updateUser(User user) {
-        return null;
+        String sql = "update users set email = ?, login = ?, user_name = ?, birthday = ? where user_id = ?";
+        jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), Date.valueOf(user.getBirthday()), user.getId());
+        return user;
     }
 
     @Override
     public Collection<User> getUsers() {
-        return null;
+        String sql = "select * from USERS order by USER_ID";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rowToUser(rs));
     }
 
     @Override
     public User getUser(int id) {
-        return null;
+        String sql = "select * from USERS where USER_ID=?";
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rowToUser(rs), id);
+    }
+
+    private User rowToUser(ResultSet resultSet) throws SQLException {
+        return User.builder()
+                .id(resultSet.getInt("USER_ID"))
+                .email(resultSet.getString("EMAIL"))
+                .login(resultSet.getString("LOGIN"))
+                .name(resultSet.getString("USER_NAME"))
+                .birthday(resultSet.getDate("BIRTHDAY").toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate())
+                .build();
     }
 }

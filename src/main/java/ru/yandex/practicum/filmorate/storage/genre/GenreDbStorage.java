@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -27,14 +26,7 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Genre getGenre(int id) {
         String sql = "select GENRE_NAME from GENRES where GENRE_ID=?";
-        SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (genreRows.next()) {
-            String name = genreRows.getString("GENRE_NAME");
-            return new Genre(id, name);
-        }
-        else {
-            return null;
-        }
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeGenre(rs), id);
     }
 
     private Genre makeGenre(ResultSet rs) throws SQLException {
