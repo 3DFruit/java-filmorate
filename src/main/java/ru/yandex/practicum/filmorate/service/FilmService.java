@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,12 +15,13 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     FilmStorage filmStorage;
-    Assertions assertions;
+    LikeStorage likeStorage;
 
     @Autowired
-    FilmService(FilmStorage filmStorage, Assertions assertions) {
+    FilmService(@Qualifier("InMemoryFilmStorage") FilmStorage filmStorage,
+                @Qualifier("InMemoryLikeStorage") LikeStorage likeStorage) {
         this.filmStorage = filmStorage;
-        this.assertions = assertions;
+        this.likeStorage = likeStorage;
     }
 
     public Collection<Film> getFilms() {
@@ -29,32 +33,22 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        assertions.assertFilm(film.getId());
         return filmStorage.updateFilm(film);
     }
 
     public Film getFilm(int id) {
-        assertions.assertFilm(id);
-        return filmStorage.getFilm(id);
-    }
-
-    public void addLike(int filmId, int userId) {
-        assertions.assertFilm(filmId);
-        assertions.assertUser(userId);
-        filmStorage.getFilm(filmId).getLikes().add(userId);
-    }
-
-    public void removeLike(int filmId, int userId) {
-        assertions.assertFilm(filmId);
-        assertions.assertUser(userId);
-        filmStorage.getFilm(filmId).getLikes().remove(userId);
+        Film film = filmStorage.getFilm(id);
+        if (film == null) {
+            throw new ObjectNotFoundException("Не найден фильм с id - " + id);
+        }
+        return film;
     }
 
     public List<Film> getMostPopularFilms(int count) {
         return filmStorage.getFilms().stream()
-                .sorted((o1, o2) -> -1 * Integer.compare(o1.getLikes().size(), o2.getLikes().size()))
+                .sorted((o1, o2) -> -1 * Integer.compare(likeStorage.getLikesQuantity(o1.getId()),
+                        likeStorage.getLikesQuantity(o2.getId())))
                 .limit(count)
                 .collect(Collectors.toList());
-
     }
 }
