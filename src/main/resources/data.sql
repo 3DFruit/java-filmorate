@@ -11,9 +11,9 @@ MERGE INTO
 VALUES
     ( 'G' ),
     ( 'PG' ),
-    ( 'PG13' ),
+    ( 'PG-13' ),
     ( 'R' ),
-    ( 'NC17' );
+    ( 'NC-17' );
 MERGE INTO
     GENRES(GENRE_NAME)
     KEY (GENRE_NAME)

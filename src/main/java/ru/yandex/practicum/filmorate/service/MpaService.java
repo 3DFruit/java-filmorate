@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
@@ -22,6 +23,9 @@ public class MpaService {
     }
 
     public Mpa getMpa(int id) {
+        if (id < 1) {
+            throw new InvalidParameterException("Неверные параметры запроса");
+        }
         Mpa mpa = mpaStorage.getMpa(id);
         if (mpa == null) {
             throw new ObjectNotFoundException("Не найден жанр с id - " + id);

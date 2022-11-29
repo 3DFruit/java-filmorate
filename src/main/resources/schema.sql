@@ -1,7 +1,7 @@
 create table if not exists MPA
 (
     MPA_ID   INTEGER auto_increment,
-    MPA_NAME CHARACTER VARYING(4)
+    MPA_NAME CHARACTER VARYING(5)
         constraint MPA_UNIQUE_NAME
             unique,
     constraint MPA_PK
@@ -37,6 +37,8 @@ create table if not exists FILMS_GENRES
     FILM_ID       INTEGER not null,
     constraint FILMS_GENRES_PK
         primary key (FILM_GENRE_ID),
+    constraint FILMS_GENRES_UNIQUE
+        unique (FILM_ID, GENRE_ID),
     constraint "FILMS_GENRES_FILMS_null_fk"
         foreign key (FILM_ID) references FILMS
             on update cascade on delete cascade,

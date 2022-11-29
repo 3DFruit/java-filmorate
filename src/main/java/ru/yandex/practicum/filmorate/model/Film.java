@@ -4,8 +4,10 @@ import lombok.*;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -24,5 +26,7 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 1, message = "Продолжительность не может быть отрицательной")
     private long duration;
-    private Integer mpaId;
+    @NotNull
+    private Mpa mpa;
+    private Set<Genre> genres;
 }
