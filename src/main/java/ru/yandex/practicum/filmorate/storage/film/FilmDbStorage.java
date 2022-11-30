@@ -7,7 +7,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.Date;
@@ -38,17 +37,6 @@ public class FilmDbStorage implements FilmStorage {
             return statement;
         }, keyHolder);
         int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        if (film.getGenres() != null && film.getGenres().size() > 0) {
-            StringBuilder genresSqlBuilder = new StringBuilder("insert into FILMS_GENRES(FILM_ID, GENRE_ID) ");
-            List<Integer> args = new ArrayList<>();
-            for (Genre genre : film.getGenres()) {
-                genresSqlBuilder.append("values (?, ?),");
-                args.add(id);
-                args.add(genre.getId());
-            }
-            genresSqlBuilder.replace(genresSqlBuilder.length() - 1, genresSqlBuilder.length(), "");
-            jdbcTemplate.update(genresSqlBuilder.toString(), args.toArray());
-        }
         film.setId(id);
         return film;
     }
@@ -74,19 +62,6 @@ public class FilmDbStorage implements FilmStorage {
         if (result < 1) {
             throw new ObjectNotFoundException("Не найден фильм с id - " + film.getId());
         }
-        jdbcTemplate.update("delete from FILMS_GENRES where FILM_ID=?",film.getId());
-        if (film.getGenres() != null && film.getGenres().size() > 0) {
-            StringBuilder genresSqlBuilder = new StringBuilder("merge into FILMS_GENRES(FILM_ID, GENRE_ID) " +
-                    "key(FILM_ID, GENRE_ID) values");
-            List<Integer> args = new ArrayList<>();
-            for (Genre genre : film.getGenres()) {
-                genresSqlBuilder.append("(?, ?),");
-                args.add(film.getId());
-                args.add(genre.getId());
-            }
-            genresSqlBuilder.replace(genresSqlBuilder.length() - 1, genresSqlBuilder.length(), "");
-            jdbcTemplate.update(genresSqlBuilder.toString(), args.toArray());
-        }
         return getFilm(film.getId());
     }
 
@@ -96,15 +71,7 @@ public class FilmDbStorage implements FilmStorage {
                 "from FILMS as F " +
                 "join MPA as M on F.MPA_ID = M.MPA_ID " +
                 "order by FILM_ID";
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> rowToFilm(rs));
-        for (Film film : films) {
-            String genresSql = "select FG.GENRE_ID, G.GENRE_NAME " +
-                    "from FILMS_GENRES as FG " +
-                    "join GENRES as G on G.GENRE_ID = FG.GENRE_ID " +
-                    "where FG.FILM_ID=?";
-            film.setGenres(new HashSet<>(jdbcTemplate.query(genresSql, (rs, rowNum) -> rowToGenre(rs), film.getId())));
-        }
-        return films;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rowToFilm(rs));
     }
 
     @Override
@@ -114,15 +81,7 @@ public class FilmDbStorage implements FilmStorage {
                 "join MPA as M on F.MPA_ID = M.MPA_ID " +
                 "where F.FIlM_ID=?";
         try {
-            Film film = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rowToFilm(rs), id);
-            if (film != null) {
-                String genresSql = "select FG.GENRE_ID, G.GENRE_NAME " +
-                        "from FILMS_GENRES as FG " +
-                        "join GENRES as G on G.GENRE_ID = FG.GENRE_ID " +
-                        "where FG.FILM_ID=?";
-                film.setGenres(new TreeSet<>(jdbcTemplate.query(genresSql, (rs, rowNum) -> rowToGenre(rs), id)));
-            }
-            return film;
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rowToFilm(rs), id);
         }
         catch (EmptyResultDataAccessException e) {
             throw new ObjectNotFoundException("Не найден фильм с id - " + id);
@@ -138,9 +97,5 @@ public class FilmDbStorage implements FilmStorage {
                 .releaseDate(resultSet.getDate("RELEASE_DATE").toLocalDate())
                 .mpa(new Mpa(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME")))
                 .build();
-    }
-
-    private Genre rowToGenre(ResultSet resultSet) throws SQLException {
-        return new Genre(resultSet.getInt("GENRE_ID"), resultSet.getString("GENRE_NAME"));
     }
 }
