@@ -1,80 +1,63 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
-import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.filmgenre.FilmGenreStorage;
-import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
     FilmStorage filmStorage;
-    LikeStorage likeStorage;
-    FilmGenreStorage filmGenreStorage;
+    UserStorage userStorage;
+    Assertions assertions;
 
     @Autowired
-    FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                @Qualifier("LikeDbStorage") LikeStorage likeStorage,
-                @Qualifier("FilmGenreDbStorage") FilmGenreStorage filmGenreStorage) {
+    FilmService(FilmStorage filmStorage, UserStorage userStorage, Assertions assertions) {
         this.filmStorage = filmStorage;
-        this.likeStorage = likeStorage;
-        this.filmGenreStorage = filmGenreStorage;
+        this.userStorage = userStorage;
+        this.assertions = assertions;
     }
 
     public Collection<Film> getFilms() {
-        Collection<Film> collection = filmStorage.getFilms();
-        for (Film film : collection) {
-            film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
-        }
-        return collection;
+        return filmStorage.getFilms();
     }
 
     public Film addFilm(Film film) {
-        Set<Genre> genreSet = film.getGenres();
-        film = filmStorage.addFilm(film);
-        film.setGenres(genreSet);
-        filmGenreStorage.updateGenresOfFilm(film);
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
-        return film;
+        return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        Set<Genre> genreSet = film.getGenres();
-        film = filmStorage.updateFilm(film);
-        film.setGenres(genreSet);
-        filmGenreStorage.updateGenresOfFilm(film);
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
-        return film;
+        assertions.assertFilm(film.getId());
+        return filmStorage.updateFilm(film);
     }
 
     public Film getFilm(int id) {
-        if (id < 1) {
-            throw new InvalidParameterException("Неверные параметры запроса");
-        }
-        Film film = filmStorage.getFilm(id);
-        if (film == null) {
-            throw new ObjectNotFoundException("Не найден фильм с id - " + id);
-        }
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(id)));
-        return film;
+        assertions.assertFilm(id);
+        return filmStorage.getFilm(id);
+    }
+
+    public void addLike(int filmId, int userId) {
+        assertions.assertFilm(filmId);
+        assertions.assertUser(userId);
+        filmStorage.getFilm(filmId).getLikes().add(userId);
+    }
+
+    public void removeLike(int filmId, int userId) {
+        assertions.assertFilm(filmId);
+        assertions.assertUser(userId);
+        filmStorage.getFilm(filmId).getLikes().remove(userId);
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return getFilms().stream()
-                .sorted((o1, o2) -> -1 * Integer.compare(likeStorage.getLikesQuantity(o1.getId()),
-                        likeStorage.getLikesQuantity(o2.getId())))
+        return filmStorage.getFilms().stream()
+                .sorted((o1, o2) -> -1 * Integer.compare(o1.getLikes().size(), o2.getLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());
+
     }
 }
