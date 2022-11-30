@@ -23,7 +23,8 @@ Template repository for Filmorate project.
     <dd>insert into FILMS_LIKES ( FILM_ID, USER_ID )   
         values ( 1, 2 )</dd>
     <dt>Обновление данных  о пользоватле с id 5</dt>
-    <dd>update USERS set EMAIL = example@email.com, LOGIN = updatedLogin, USER_NAME = newName, BIRTHDAY = 2022-10-1 where USER_ID = 5 </dd>
+    <dd>update USERS set EMAIL = example@email.com, LOGIN = updatedLogin, USER_NAME = newName, BIRTHDAY = 2022-10-1 
+        where USER_ID = 5 </dd>
 </dl>
 
 
