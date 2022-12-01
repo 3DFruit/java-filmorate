@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Component("InMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private int nextId = 1;
     private final Map<Integer, Film> films = new HashMap<>();
@@ -22,12 +22,19 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void removeFilmById(int id) {
+        if(!films.containsKey(id)) {
+            throw new ObjectNotFoundException("Пользователь не найден");
+        }
         films.remove(id);
     }
 
     @Override
     public Film updateFilm(Film film) {
-        films.put(film.getId(), film);
+        int id = film.getId();
+        if(!films.containsKey(id)) {
+            throw new ObjectNotFoundException("Пользователь не найден");
+        }
+        films.put(id, film);
         return film;
     }
 
