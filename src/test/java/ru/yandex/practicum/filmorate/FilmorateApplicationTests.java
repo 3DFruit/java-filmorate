@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -57,8 +56,8 @@ class FilmorateApplicationTests {
 
 	@Test
 	public void testGetGenreNotFound() {
-		Assertions.assertThatThrownBy(() -> genreStorage.getGenre(9999))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(genreStorage.getGenre(9999))
+				.isNull();
 	}
 
 	@Test
@@ -80,8 +79,8 @@ class FilmorateApplicationTests {
 
 	@Test
 	public void testGetMpaNotFound() {
-		Assertions.assertThatThrownBy(() -> mpaStorage.getMpa(9999))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(mpaStorage.getMpa(9999))
+				.isNull();
 	}
 
 	@Test
@@ -105,8 +104,8 @@ class FilmorateApplicationTests {
 				.build();
 		userStorage.addUser(user);
 		userStorage.removeUserById(user.getId());
-		Assertions.assertThatThrownBy(() -> userStorage.getUser(user.getId()))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(userStorage.getUser(user.getId()))
+				.isNull();
 	}
 
 	@Test
@@ -135,8 +134,8 @@ class FilmorateApplicationTests {
 				.email("example@mail.mail")
 				.birthday(LocalDate.of(2000, 12, 22))
 				.build();
-		Assertions.assertThatThrownBy(() -> userStorage.updateUser(user))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(userStorage.updateUser(user))
+				.isNull();
 	}
 
 	@Test
@@ -189,8 +188,8 @@ class FilmorateApplicationTests {
 				.build();
 		filmStorage.addFilm(film);
 		filmStorage.removeFilmById(film.getId());
-		Assertions.assertThatThrownBy(() -> filmStorage.getFilm(film.getId()))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(filmStorage.getFilm(film.getId()))
+				.isNull();
 	}
 
 	@Test
@@ -229,8 +228,8 @@ class FilmorateApplicationTests {
 				.description("desc")
 				.duration(110)
 				.build();
-		Assertions.assertThatThrownBy(() -> filmStorage.updateFilm(film))
-				.isInstanceOf(ObjectNotFoundException.class);
+		Assertions.assertThat(filmStorage.updateFilm(film))
+				.isNull();
 	}
 
 	@Test
@@ -297,10 +296,10 @@ class FilmorateApplicationTests {
 				.build();
 		filmStorage.addFilm(film);
 		filmGenreStorage.updateGenresOfFilm(film);
-		Assertions.assertThat(filmGenreStorage.getGenresOfFilm(film.getId()))
+		Assertions.assertThat(filmGenreStorage.getGenresOfFilms(List.of(film.getId())).get(film.getId()))
 				.extracting(Genre::getId)
 						.containsAll(Arrays.asList(1, 4));
-		Assertions.assertThat(filmGenreStorage.getGenresOfFilm(film.getId()))
+		Assertions.assertThat(filmGenreStorage.getGenresOfFilms(List.of(film.getId())).get(film.getId()))
 				.extracting(Genre::getName)
 				.containsAll(Arrays.asList("Комедия", "Триллер"));
 		film.setGenres(new HashSet<>(Arrays.asList(new Genre(1, null),
@@ -308,15 +307,15 @@ class FilmorateApplicationTests {
 				new Genre(5, null)
 		)));
 		filmGenreStorage.updateGenresOfFilm(film);
-		Assertions.assertThat(filmGenreStorage.getGenresOfFilm(film.getId()))
+		Assertions.assertThat(filmGenreStorage.getGenresOfFilms(List.of(film.getId())).get(film.getId()))
 				.extracting(Genre::getId)
 				.contains(5);
-		Assertions.assertThat(filmGenreStorage.getGenresOfFilm(film.getId()))
+		Assertions.assertThat(filmGenreStorage.getGenresOfFilms(List.of(film.getId())).get(film.getId()))
 				.extracting(Genre::getName)
 				.contains("Документальный");
 		film.setGenres(new HashSet<>(List.of(new Genre(3, null))));
 		filmGenreStorage.updateGenresOfFilm(film);
-		Assertions.assertThat(filmGenreStorage.getGenresOfFilm(film.getId()))
+		Assertions.assertThat(filmGenreStorage.getGenresOfFilms(List.of(film.getId())).get(film.getId()))
 				.extracting(Genre::getName)
 				.contains("Мультфильм");
 	}

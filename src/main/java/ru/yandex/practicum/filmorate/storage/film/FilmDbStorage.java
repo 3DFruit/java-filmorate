@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -15,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-@Component("FilmDbStorage")
+@Component
 public class FilmDbStorage implements FilmStorage {
 
     JdbcTemplate jdbcTemplate;
@@ -60,7 +58,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId());
         if (result < 1) {
-            throw new ObjectNotFoundException("Не найден фильм с id - " + film.getId());
+            return null;
         }
         return getFilm(film.getId());
     }
@@ -80,12 +78,23 @@ public class FilmDbStorage implements FilmStorage {
                 "from FILMS as F " +
                 "join MPA as M on F.MPA_ID = M.MPA_ID " +
                 "where F.FIlM_ID=?";
-        try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rowToFilm(rs), id);
+        List<Film> queryResult = jdbcTemplate.query(sql, (rs, rowNum) -> rowToFilm(rs), id);
+        if (queryResult.size() != 1) {
+            return null;
         }
-        catch (EmptyResultDataAccessException e) {
-            throw new ObjectNotFoundException("Не найден фильм с id - " + id);
-        }
+        return queryResult.get(0);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int limit) {
+        String sql = "select F.FILM_ID, F.TITLE, F.DESCRIPTION, F.DURATION, F.RELEASE_DATE, F.MPA_ID, M.MPA_NAME " +
+                "from FILMS as F " +
+                "join MPA as M on F.MPA_ID = M.MPA_ID " +
+                "left join FILMS_LIKES as FL on F.FILM_ID = FL.FILM_ID " +
+                "group by F.FILM_ID, F.TITLE, F.DESCRIPTION, F.DURATION, F.RELEASE_DATE, F.MPA_ID, M.MPA_NAME " +
+                "order by COUNT(FL.FILM_LIKE_ID) desc " +
+                "limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rowToFilm(rs), limit);
     }
 
     private Film rowToFilm(ResultSet resultSet) throws SQLException {

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
@@ -15,7 +14,7 @@ public class MpaService {
     MpaStorage mpaStorage;
 
     @Autowired
-    MpaService(@Qualifier("MpaDbStorage") MpaStorage mpaStorage) {
+    MpaService(MpaStorage mpaStorage) {
         this.mpaStorage = mpaStorage;
     }
     public Collection<Mpa> getMpa() {

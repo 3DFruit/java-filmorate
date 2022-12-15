@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
@@ -13,9 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.sql.Date;
+import java.util.List;
 import java.util.Objects;
 
-@Component("UserDbStorage")
+@Component
 public class UserDbStorage implements UserStorage{
 
     private final JdbcTemplate jdbcTemplate;
@@ -62,7 +61,7 @@ public class UserDbStorage implements UserStorage{
                 Date.valueOf(user.getBirthday()),
                 user.getId());
         if (result < 1) {
-            throw new ObjectNotFoundException("Не найден пользователь с id - " + user.getId());
+            return null;
         }
         return user;
     }
@@ -76,12 +75,11 @@ public class UserDbStorage implements UserStorage{
     @Override
     public User getUser(int id) {
         String sql = "select * from USERS where USER_ID=?";
-        try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rowToUser(rs), id);
+        List<User> queryResult = jdbcTemplate.query(sql, (rs, rowNum) -> rowToUser(rs), id);
+        if (queryResult.size() != 1) {
+            return null;
         }
-        catch (EmptyResultDataAccessException e) {
-            throw new ObjectNotFoundException("Не найден пользователь с id - " + id);
-        }
+        return queryResult.get(0);
     }
 
     private User rowToUser(ResultSet resultSet) throws SQLException {

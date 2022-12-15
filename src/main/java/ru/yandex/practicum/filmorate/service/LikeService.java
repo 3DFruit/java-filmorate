@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
@@ -11,7 +10,7 @@ public class LikeService {
     LikeStorage likeStorage;
 
     @Autowired
-    LikeService(@Qualifier("LikeDbStorage") LikeStorage likeStorage){
+    LikeService(LikeStorage likeStorage){
         this.likeStorage = likeStorage;
     }
 

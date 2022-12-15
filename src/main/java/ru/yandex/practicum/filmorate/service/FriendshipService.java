@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -17,7 +16,7 @@ public class FriendshipService {
     FriendshipStorage friendshipStorage;
 
     @Autowired
-    FriendshipService(@Qualifier("FriendshipDbStorage") FriendshipStorage friendshipStorage) {
+    FriendshipService(FriendshipStorage friendshipStorage) {
         this.friendshipStorage = friendshipStorage;
     }
     public void addToFriends(int userId, int friendId) {
