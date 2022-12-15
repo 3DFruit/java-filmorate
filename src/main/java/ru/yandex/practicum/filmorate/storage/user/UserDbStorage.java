@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.sql.Date;
 import java.util.Objects;
 
-@Component("UserDbStorage")
+@Component
 public class UserDbStorage implements UserStorage{
 
     private final JdbcTemplate jdbcTemplate;

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
@@ -16,7 +15,7 @@ public class GenreService {
     GenreStorage genreStorage;
 
     @Autowired
-    GenreService(@Qualifier("GenreDbStorage") GenreStorage genreStorage) {
+    GenreService(GenreStorage genreStorage) {
         this.genreStorage = genreStorage;
     }
     public Collection<Genre> getGenres() {

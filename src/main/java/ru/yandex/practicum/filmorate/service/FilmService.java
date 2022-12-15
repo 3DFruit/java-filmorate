@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
@@ -24,9 +23,9 @@ public class FilmService {
     FilmGenreStorage filmGenreStorage;
 
     @Autowired
-    FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                @Qualifier("LikeDbStorage") LikeStorage likeStorage,
-                @Qualifier("FilmGenreDbStorage") FilmGenreStorage filmGenreStorage) {
+    FilmService(FilmStorage filmStorage,
+                LikeStorage likeStorage,
+                FilmGenreStorage filmGenreStorage) {
         this.filmStorage = filmStorage;
         this.likeStorage = likeStorage;
         this.filmGenreStorage = filmGenreStorage;

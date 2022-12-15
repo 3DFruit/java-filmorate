@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component("FilmGenreDbStorage")
+@Component
 public class FilmGenreDbStorage implements FilmGenreStorage {
     JdbcTemplate jdbcTemplate;
 

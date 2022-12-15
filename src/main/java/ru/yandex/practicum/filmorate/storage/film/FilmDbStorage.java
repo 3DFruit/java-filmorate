@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-@Component("FilmDbStorage")
+@Component
 public class FilmDbStorage implements FilmStorage {
 
     JdbcTemplate jdbcTemplate;
