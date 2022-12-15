@@ -10,10 +10,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenre.FilmGenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,11 +29,9 @@ public class FilmService {
     }
 
     public Collection<Film> getFilms() {
-        Collection<Film> collection = filmStorage.getFilms();
-        for (Film film : collection) {
-            film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
-        }
-        return collection;
+        Collection<Film> films = filmStorage.getFilms();
+        setFilmGenres(films);
+        return films;
     }
 
     public Film addFilm(Film film) {
@@ -44,16 +39,19 @@ public class FilmService {
         film = filmStorage.addFilm(film);
         film.setGenres(genreSet);
         filmGenreStorage.updateGenresOfFilm(film);
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
+        setFilmGenres(List.of(film));
         return film;
     }
 
     public Film updateFilm(Film film) {
         Set<Genre> genreSet = film.getGenres();
         film = filmStorage.updateFilm(film);
+        if (film == null) {
+            throw new ObjectNotFoundException("Не найден фильм" );
+        }
         film.setGenres(genreSet);
         filmGenreStorage.updateGenresOfFilm(film);
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(film.getId())));
+        setFilmGenres(List.of(film));
         return film;
     }
 
@@ -65,15 +63,21 @@ public class FilmService {
         if (film == null) {
             throw new ObjectNotFoundException("Не найден фильм с id - " + id);
         }
-        film.setGenres(new TreeSet<>(filmGenreStorage.getGenresOfFilm(id)));
+        setFilmGenres(List.of(film));
         return film;
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return getFilms().stream()
-                .sorted((o1, o2) -> -1 * Integer.compare(likeStorage.getLikesQuantity(o1.getId()),
-                        likeStorage.getLikesQuantity(o2.getId())))
-                .limit(count)
-                .collect(Collectors.toList());
+        List<Film> films = filmStorage.getPopularFilms(count);
+        setFilmGenres(films);
+        return films;
+    }
+
+    private void setFilmGenres(Collection<Film> films) {
+        List<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+        Map<Integer, Set<Genre>> genres = filmGenreStorage.getGenresOfFilms(filmIds);
+        for (Film film : films) {
+            film.setGenres(genres.getOrDefault(film.getId(), new TreeSet<>()));
+        }
     }
 }

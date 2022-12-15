@@ -27,6 +27,10 @@ public class UserService {
     }
 
     public User updateUser(User user){
+        user = userStorage.updateUser(user);
+        if (user == null) {
+            throw  new ObjectNotFoundException("Пользователь не найден");
+        }
         return userStorage.updateUser(user);
     }
 
