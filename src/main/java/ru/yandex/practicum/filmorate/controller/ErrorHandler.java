@@ -18,7 +18,7 @@ public class ErrorHandler {
             ValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidateException (final Exception e) {
-        log.warn("Ошибка валидации: " + e.getMessage());
+        log.warn("Ошибка валидации: {}", e.getMessage(), e);
         return new ErrorResponse(
                 "Ошибка валидации: " + e.getMessage()
         );
@@ -28,7 +28,7 @@ public class ErrorHandler {
             InvalidParameterException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException (final Exception e) {
-        log.warn("Объект не найден: " + e.getMessage());
+        log.warn("Объект не найден: {}", e.getMessage(), e);
         return new ErrorResponse(
                 "Объект не найден: " + e.getMessage()
         );
@@ -37,7 +37,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Exception e) {
-        log.warn("Необработанная ошибка: " + e);
+        log.warn("Необработанная ошибка: {}", e.getMessage(), e);
         return new ErrorResponse(
                 "Произошла непредвиденная ошибка. " + e.getMessage()
         );

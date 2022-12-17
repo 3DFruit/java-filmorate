@@ -31,14 +31,14 @@ public class FilmController {
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
         film = filmService.addFilm(film);
-        log.debug("Добавлен фильм с id {}", film.getId());
+        log.info("Добавлен фильм с id {}", film.getId());
         return film;
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
         film = filmService.updateFilm(film);
-        log.debug("Обновлен фильм с id {}", film.getId());
+        log.info("Обновлен фильм с id {}", film.getId());
         return film;
     }
 
